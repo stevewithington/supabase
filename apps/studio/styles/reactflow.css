@@ -1,4 +1,4 @@
-@reference "./main.css";
+@reference "./globals.css";
 
 .instance-configuration {
   .react-flow__pane {
@@ -6,6 +6,12 @@
   }
   .react-flow__node {
     @apply cursor-default;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .react-flow__edge.animated path {
+    animation: none;
   }
 }
 

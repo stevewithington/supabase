@@ -9,12 +9,15 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  Popover_Shadcn_,
-  PopoverContent_Shadcn_,
-  PopoverTrigger_Shadcn_,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
 } from 'ui'
-import { TimestampInfo, timestampLocalFormatter } from 'ui-patterns'
 import { Input } from 'ui-patterns/DataInputs/Input'
+import { TimestampInfo, timestampLocalFormatter } from 'ui-patterns/TimestampInfo'
 
 import { BlockKeys } from '../common/BlockKeys'
 import { useIsQueueOperationsEnabled } from '@/components/interfaces/Account/Preferences/useDashboardSettings'
@@ -75,13 +78,13 @@ function BaseEditor<TRow, TSummaryRow = unknown>({
   }, [])
 
   return (
-    <Popover_Shadcn_ open>
-      <PopoverTrigger_Shadcn_>
+    <Popover open>
+      <PopoverTrigger>
         <div className={cn('px-[8px]', value === null ? 'text-foreground-lighter' : '')}>
           {value === null ? 'NULL' : value}
         </div>
-      </PopoverTrigger_Shadcn_>
-      <PopoverContent_Shadcn_ align="start" className="p-0 rounded-none w-64">
+      </PopoverTrigger>
+      <PopoverContent align="start" className="p-0 rounded-none w-64">
         <BlockKeys
           ignoreOutsideClicks
           value={inputValue}
@@ -141,31 +144,41 @@ function BaseEditor<TRow, TSummaryRow = unknown>({
           <div className="flex">
             {isNullable ? (
               <>
-                <Button type="default" className="rounded-r-none" onClick={() => saveChanges(null)}>
+                <Button
+                  variant="default"
+                  className="rounded-r-none"
+                  onClick={() => saveChanges(null)}
+                >
                   Set NULL
                 </Button>
                 <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      type="default"
-                      icon={<ChevronDown />}
-                      className="px-1 rounded-l-none border-l-0"
-                    />
-                  </DropdownMenuTrigger>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          aria-label="Date options"
+                          variant="default"
+                          icon={<ChevronDown />}
+                          className="px-1 rounded-l-none border-l-0"
+                        />
+                      </DropdownMenuTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">Date options</TooltipContent>
+                  </Tooltip>
                   <DropdownMenuContent className="w-20" align="end">
                     <DropdownMenuItem onClick={setToNow}>Set to NOW</DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </>
             ) : (
-              <Button type="default" onClick={setToNow}>
+              <Button variant="default" onClick={setToNow}>
                 Set to NOW
               </Button>
             )}
           </div>
         </div>
-      </PopoverContent_Shadcn_>
-    </Popover_Shadcn_>
+      </PopoverContent>
+    </Popover>
   )
 }
 

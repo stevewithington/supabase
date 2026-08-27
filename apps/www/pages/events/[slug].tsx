@@ -13,8 +13,9 @@ import utc from 'dayjs/plugin/utc'
 import matter from 'gray-matter'
 import { ChevronLeft, X as XIcon } from 'lucide-react'
 import type { GetStaticProps, InferGetStaticPropsType } from 'next'
-import { MDXRemote } from 'next-mdx-remote'
+import { MDXClient } from 'next-mdx-remote-client/csr'
 import { NextSeo } from 'next-seo'
+import Head from 'next/head'
 import NextImage from 'next/image'
 import Link from 'next/link'
 import { Button } from 'ui'
@@ -23,8 +24,11 @@ import { Image } from 'ui-patterns/Image'
 import ShareArticleActions from '@/components/Blog/ShareArticleActions'
 import DefaultLayout from '@/components/Layouts/Default'
 import SectionContainer from '@/components/Layouts/SectionContainer'
+import { MarkdownActions } from '@/components/MarkdownActions'
 import authors from '@/lib/authors.json'
+import { breadcrumbs } from '@/lib/breadcrumbs'
 import { capitalize, isNotNullOrUndefined } from '@/lib/helpers'
+import { breadcrumbListSchema, serializeJsonLd } from '@/lib/json-ld'
 import mdxComponents from '@/lib/mdx/mdxComponents'
 import { mdxSerialize } from '@/lib/mdx/mdxSerialize'
 import { getAllPostSlugs, getPostdata } from '@/lib/posts'
@@ -58,6 +62,7 @@ interface EventData {
   main_cta?: CTA
   description: string
   type: EventType
+  type_label?: string
   company?: CompanyType
   onDemand?: boolean
   disable_page_build?: boolean
@@ -221,6 +226,22 @@ const EventPage = ({ event }: InferGetStaticPropsType<typeof getStaticProps>) =>
           },
         }}
       />
+      <Head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: serializeJsonLd(
+              breadcrumbListSchema([
+                ...breadcrumbs.eventsIndex,
+                {
+                  name: event.meta_title ?? event.title,
+                  url: `https://supabase.com/events/${event.slug}`,
+                },
+              ])
+            ),
+          }}
+        />
+      </Head>
       <DefaultLayout>
         <div className="flex flex-col w-full bg-alternative border-b border-muted">
           <SectionContainer className="py-2! flex items-start">
@@ -264,7 +285,9 @@ const EventPage = ({ event }: InferGetStaticPropsType<typeof getStaticProps>) =>
                 <div className="flex flex-col gap-2 md:gap-3 items-start mb-8">
                   <div className="flex flex-row text-sm items-center flex-wrap">
                     <Icon className="hidden sm:inline-block w-4 h-4 text-brand mr-2" />
-                    <span className="uppercase text-brand font-mono">{event.type}</span>
+                    <span className="uppercase text-brand font-mono">
+                      {event.type_label ?? event.type}
+                    </span>
                     <span className="mx-3 px-3 border-x">
                       {dayjs(event.date).tz(event.timezone).format(`DD MMM YYYY [at] hA z`)}
                     </span>
@@ -274,7 +297,7 @@ const EventPage = ({ event }: InferGetStaticPropsType<typeof getStaticProps>) =>
                   <h1 className="text-foreground text-3xl md:text-4xl xl:pr-9">{event.title}</h1>
                   <p>{event.subtitle}</p>
                   <Button
-                    type="primary"
+                    variant="primary"
                     size="medium"
                     className="mt-2"
                     disabled={
@@ -287,7 +310,7 @@ const EventPage = ({ event }: InferGetStaticPropsType<typeof getStaticProps>) =>
                       target={event.main_cta?.target ? event.main_cta?.target : undefined}
                       onClick={() =>
                         sendTelemetryEvent({
-                          action: 'www_pricing_plan_cta_clicked',
+                          action: 'www_event_page_cta_clicked',
                           properties: { eventTitle: event.title },
                         })
                       }
@@ -302,6 +325,11 @@ const EventPage = ({ event }: InferGetStaticPropsType<typeof getStaticProps>) =>
                     </Link>
                   </Button>
                 </div>
+                <MarkdownActions
+                  pagePath={`/events/${event.slug}`}
+                  pageType="events"
+                  className="mb-4"
+                />
                 <div className="flex flex-col text-sm">
                   <span>Share on</span>
                   <ShareArticleActions title={meta.title} slug={meta.url} basePath="" />
@@ -369,11 +397,11 @@ const EventPage = ({ event }: InferGetStaticPropsType<typeof getStaticProps>) =>
                 <h2 className="text-foreground-light text-sm font-mono uppercase">
                   About this event
                 </h2>
-                <MDXRemote {...content} components={mdxComponents()} />
+                <MDXClient {...content} components={mdxComponents()} />
               </div>
               <aside className="mt-8">
                 <Button
-                  type="primary"
+                  variant="primary"
                   size="medium"
                   className="mt-2"
                   disabled={!IS_REGISTRATION_OPEN || event.main_cta?.disabled}

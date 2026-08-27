@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from 'react'
-import Link from 'next/link'
 import { AnimatePresence } from 'framer-motion'
+import { Pencil, Users, Users2 } from 'lucide-react'
+import Link from 'next/link'
+import React, { useEffect, useState } from 'react'
 import { Swiper, SwiperSlide } from 'swiper/react'
-import { cn } from 'ui'
-import { LogoLoader } from 'ui'
+import { cn, LogoLoader } from 'ui'
 
 import RepoCard from './RepoCard'
-import { Pencil, Users, Users2 } from 'lucide-react'
 
 interface TabProps {
   label: string
@@ -17,11 +16,10 @@ interface TabProps {
 
 const Tab = ({ isActive, label, icon, onClick }: TabProps) => (
   <button
+    tabIndex={0}
     onClick={onClick}
     className={`rounded-full px-4 md:px-3 py-2 md:py-1 nowrap flex group gap-1 transition-all ${
-      isActive
-        ? 'text-strong bg-surface-300'
-        : 'text-foreground-lighter bg-surface-200 hover:bg-overlay-hover'
+      isActive ? 'bg-surface-300' : 'text-foreground-lighter bg-surface-200 hover:bg-overlay-hover'
     }`}
     aria-selected={isActive}
     role="tab"

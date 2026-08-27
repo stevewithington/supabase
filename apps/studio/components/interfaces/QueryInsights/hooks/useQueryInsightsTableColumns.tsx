@@ -1,6 +1,5 @@
 import { ArrowDown, ArrowRight, ArrowUp, ChevronDown, ExternalLink, ScanSearch } from 'lucide-react'
 import { useMemo, type RefObject } from 'react'
-// eslint-disable-next-line no-restricted-imports
 import { type Column, type DataGridHandle } from 'react-data-grid'
 import {
   Button,
@@ -8,7 +7,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
   Tooltip,
   TooltipContent,
@@ -88,7 +86,7 @@ export function useQueryInsightsTableColumns({
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
-                      type="text"
+                      variant="text"
                       size="tiny"
                       className="p-1 h-5 w-5 shrink-0"
                       icon={<ChevronDown size={14} className="text-foreground-muted" />}
@@ -165,7 +163,7 @@ export function useQueryInsightsTableColumns({
                   tooltip={{ content: { text: 'Query details' } }}
                   icon={<ArrowRight size={14} />}
                   size="tiny"
-                  type="default"
+                  variant="default"
                   onClick={(e: React.MouseEvent) => {
                     e.stopPropagation()
                     setSelectedRow(props.rowIdx)
@@ -373,7 +371,7 @@ export function useQueryInsightsTableColumns({
                 tooltip={{ content: { text: 'Query details' } }}
                 icon={<ArrowRight size={14} />}
                 size="tiny"
-                type="default"
+                variant="default"
                 onClick={(e: React.MouseEvent) => {
                   e.stopPropagation()
                   setSelectedTriageRow(props.rowIdx)
@@ -498,7 +496,7 @@ export function useQueryInsightsTableColumns({
             <div className="flex items-center gap-2 justify-end w-full h-full">
               {!row.issueType && (
                 <Button
-                  type="default"
+                  variant="default"
                   size="tiny"
                   onClick={(e: React.MouseEvent) => {
                     e.stopPropagation()
@@ -511,9 +509,9 @@ export function useQueryInsightsTableColumns({
               {row.issueType === 'index' && (
                 <div className="flex items-center" onClick={(e) => e.stopPropagation()}>
                   <Button
-                    type="primary"
+                    variant="primary"
                     size="tiny"
-                    className="rounded-r-none border-r-0"
+                    className="rounded-r-none hover:z-10 focus-visible:z-10 focus-visible:rounded-r-sm"
                     onClick={() => {
                       setSelectedTriageRow(props.rowIdx)
                       setSheetView('indexes')
@@ -524,9 +522,10 @@ export function useQueryInsightsTableColumns({
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
-                        type="primary"
+                        variant="primary"
                         size="tiny"
-                        className="rounded-l-none px-1"
+                        aria-label="More index actions"
+                        className="shrink-0 rounded-l-none px-[4px] py-[5px] -ml-px focus-visible:z-10 focus-visible:rounded-l-sm"
                         icon={<ChevronDown size={12} />}
                       />
                     </DropdownMenuTrigger>
@@ -556,27 +555,25 @@ export function useQueryInsightsTableColumns({
                     buildPrompt={() => buildQueryInsightFixPrompt(row).prompt}
                     onOpenAssistant={() => handleAiSuggestedFix(row)}
                     copyLabel="Copy Markdown"
-                    extraDropdownItems={
-                      <>
-                        <DropdownMenuItem onClick={() => handleGoToLogs()} className="gap-2">
-                          <ExternalLink size={14} />
-                          Go to Logs
-                        </DropdownMenuItem>
-                        {row.issueType === 'slow' && (
-                          <DropdownMenuItem
-                            onClick={() => {
-                              setSelectedTriageRow(props.rowIdx)
-                              setSheetView('explain')
-                            }}
-                            className="gap-2"
-                          >
-                            <ScanSearch size={14} />
-                            Explain
-                          </DropdownMenuItem>
-                        )}
-                        <DropdownMenuSeparator />
-                      </>
-                    }
+                    additionalDropdownItems={[
+                      {
+                        label: 'Go to Logs',
+                        icon: <ExternalLink size={14} />,
+                        onClick: () => handleGoToLogs(),
+                      },
+                      ...(row.issueType === 'slow'
+                        ? [
+                            {
+                              label: 'Explain',
+                              icon: <ScanSearch size={14} />,
+                              onClick: () => {
+                                setSelectedTriageRow(props.rowIdx)
+                                setSheetView('explain')
+                              },
+                            },
+                          ]
+                        : []),
+                    ]}
                   />
                 </div>
               )}

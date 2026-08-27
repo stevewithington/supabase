@@ -53,7 +53,7 @@ const TableRow = React.forwardRef<HTMLTableRowElement, React.HTMLAttributes<HTML
     <tr
       ref={ref}
       className={cn(
-        'border-b [&>td]:hover:bg-surface-200 data-[state=selected]:bg-muted',
+        'border-b group data-[state=selected]:bg-muted hover:bg-surface-200',
         className
       )}
       {...props}
@@ -132,6 +132,7 @@ function TableHeadSort<TColumn extends string = string>({
   return (
     <button
       type="button"
+      tabIndex={0}
       className={cn(
         'group/table-head-sort heading-meta whitespace-nowrap flex items-center gap-1 cursor-pointer select-none bg-transparent! border-none p-0 w-full text-left',
         className

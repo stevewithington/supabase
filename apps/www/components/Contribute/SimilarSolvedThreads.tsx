@@ -24,8 +24,8 @@ import {
   DialogSection,
   DialogSectionSeparator,
   DialogTitle,
-  Label_Shadcn_,
-  TextArea_Shadcn_,
+  Label,
+  TextArea,
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -165,6 +165,7 @@ export const SimilarSolvedThreads = ({ threads, parentThreadId }: SimilarSolvedT
     <Card className={cn('relative')}>
       <CardHeader className={cn('p-0', !isExpanded && 'border-b-0')}>
         <button
+          tabIndex={0}
           type="button"
           onClick={() => setIsExpanded((prev) => !prev)}
           className="flex w-full items-center gap-1.5 px-(--card-padding-x) py-4 text-left text-xs font-mono uppercase text-card-foreground"
@@ -200,6 +201,7 @@ export const SimilarSolvedThreads = ({ threads, parentThreadId }: SimilarSolvedT
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <button
+                        tabIndex={0}
                         type="button"
                         onClick={() => handleThumbClick('positive')}
                         disabled={isSubmitting}
@@ -214,6 +216,7 @@ export const SimilarSolvedThreads = ({ threads, parentThreadId }: SimilarSolvedT
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <button
+                        tabIndex={0}
                         type="button"
                         onClick={() => handleThumbClick('negative')}
                         disabled={isSubmitting}
@@ -284,10 +287,10 @@ export const SimilarSolvedThreads = ({ threads, parentThreadId }: SimilarSolvedT
               </div>
             </fieldset>
             <div className="space-y-1">
-              <Label_Shadcn_ htmlFor="feedback">
+              <Label htmlFor="feedback">
                 Additional feedback <span className="text-foreground-muted">(optional)</span>
-              </Label_Shadcn_>
-              <TextArea_Shadcn_
+              </Label>
+              <TextArea
                 id="feedback"
                 placeholder="What was helpful or missing?"
                 rows={4}

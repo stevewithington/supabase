@@ -1,4 +1,5 @@
 import { CubeIcon } from '@heroicons/react/outline'
+import { DASHBOARD_SIGN_UP_URL } from '@/lib/dashboard-links'
 import { useBreakpoint } from 'common'
 import {
   Check,
@@ -19,7 +20,7 @@ import {
 import dynamic from 'next/dynamic'
 import { useState } from 'react'
 import { PRODUCT_SHORTNAMES } from 'shared-data/products'
-import { cn, Input_Shadcn_, Switch } from 'ui'
+import { cn, Input, Switch } from 'ui'
 import { Image } from 'ui-patterns/Image'
 
 import MainProducts from '../MainProducts'
@@ -85,7 +86,7 @@ const data: () => {
       ctas: [
         {
           label: 'Start your project',
-          href: 'https://supabase.com/dashboard',
+          href: DASHBOARD_SIGN_UP_URL,
           type: 'primary' as any,
           onClick: () =>
             sendTelemetryEvent({
@@ -228,7 +229,7 @@ const data: () => {
                   absolute pointer-events-none
                   w-full h-full
                   inset-0 top-auto
-                  bg-[linear-gradient(to_bottom,transparent_0%,hsl(var(--background-default))_100%)]
+                  bg-[linear-gradient(to_bottom,transparent_0%,var(--background-default)_100%)]
                 "
               />
             </div>
@@ -294,7 +295,7 @@ const data: () => {
           ),
           className: 'border-l-0! sm:border-l!',
           image: (
-            <RealtimeVisual className="[&_.visual-overlay]:bg-[linear-gradient(to_top,transparent_0%,transparent_50%,hsl(var(--background-default))_75%)]" />
+            <RealtimeVisual className="[&_.visual-overlay]:bg-[linear-gradient(to_top,transparent_0%,transparent_50%,var(--background-default)_75%)]" />
           ),
         },
         {
@@ -391,7 +392,7 @@ const data: () => {
           ),
         },
         {
-          id: 'row-level-security',
+          id: 'full-sql-access',
           title: 'Full SQL access',
           icon: '',
           subheading: (
@@ -411,7 +412,7 @@ const data: () => {
                 dark: '/images/solutions/postgres-developers/sql-editor-dark.jpg',
                 light: '/images/solutions/postgres-developers/sql-editor-light.jpg',
               }}
-              alt="Row Level Security"
+              alt="SQL Editor"
               width={100}
               height={100}
               quality={100}
@@ -443,7 +444,7 @@ const data: () => {
                   <p className="text-sm text-foreground-light">Name of function</p>
 
                   <div className="flex flex-col gap-2">
-                    <Input_Shadcn_ placeholder="Name of function" />
+                    <Input placeholder="Name of function" />
                     <span className="text-foreground-muted text-sm">
                       Name will also be used for the function name in postgres
                     </span>
@@ -644,7 +645,7 @@ const data: () => {
                   absolute pointer-events-none
                   w-full h-full
                   inset-0 top-auto
-                  bg-[linear-gradient(to_top,transparent_0%,transparent_50%,hsl(var(--background-default))_75%)]
+                  bg-[linear-gradient(to_top,transparent_0%,transparent_50%,var(--background-default)_75%)]
                 "
               />
               <Image
@@ -675,7 +676,7 @@ const data: () => {
             <RealtimeLogs
               isActive={false}
               isInView={true}
-              className="h-3/5 bottom-0 top-auto [&_.visual-overlay]:bg-[linear-gradient(to_top,hsl(var(--background-default))_0%,transparent_100%)]!"
+              className="h-3/5 bottom-0 top-auto [&_.visual-overlay]:bg-[linear-gradient(to_top,var(--background-default)_0%,transparent_100%)]!"
             />
           ),
         },

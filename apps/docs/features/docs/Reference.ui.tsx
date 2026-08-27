@@ -14,13 +14,7 @@ import { isEqual } from 'lodash-es'
 import { ChevronRight, XCircle } from 'lucide-react'
 import type { HTMLAttributes, PropsWithChildren } from 'react'
 import ReactMarkdown from 'react-markdown'
-import {
-  Badge,
-  cn,
-  Collapsible_Shadcn_,
-  CollapsibleContent_Shadcn_,
-  CollapsibleTrigger_Shadcn_,
-} from 'ui'
+import { Badge, cn, Collapsible, CollapsibleContent, CollapsibleTrigger } from 'ui'
 
 import { getTypeDisplayFromSchema, IApiEndPoint, type ISchema } from './Reference.api.utils'
 import { API_REFERENCE_REQUEST_BODY_SCHEMA_DATA_ATTRIBUTES } from './Reference.ui.shared'
@@ -122,8 +116,8 @@ export function StickyHeader({ title, monoFont = false, className }: StickyHeade
 
 export function CollapsibleDetails({ title, content }: { title: string; content: string }) {
   return (
-    <Collapsible_Shadcn_>
-      <CollapsibleTrigger_Shadcn_
+    <Collapsible>
+      <CollapsibleTrigger
         className={cn(
           'group',
           'w-full h-8',
@@ -133,13 +127,13 @@ export function CollapsibleDetails({ title, content }: { title: string; content:
           'text-xs text-foreground-light',
           'data-open:bg-surface-200',
           'data-open:rounded-b-none data-open:border-b-0',
-          'transition-safe-all ease-out'
+          'transition motion-reduce:duration-1 ease-out'
         )}
       >
         <ChevronRight size={12} className="group-data-open:rotate-90 transition-transform" />
         {title}
-      </CollapsibleTrigger_Shadcn_>
-      <CollapsibleContent_Shadcn_
+      </CollapsibleTrigger>
+      <CollapsibleContent
         className={cn(
           'border border-default bg-surface-100 rounded-b',
           'px-5 py-2',
@@ -147,8 +141,8 @@ export function CollapsibleDetails({ title, content }: { title: string; content:
         )}
       >
         <MDXRemoteRefs source={content} />
-      </CollapsibleContent_Shadcn_>
-    </Collapsible_Shadcn_>
+      </CollapsibleContent>
+    </Collapsible>
   )
 }
 
@@ -281,8 +275,8 @@ function TypeSubDetails({
   defaultOpen?: boolean
 }) {
   return (
-    <Collapsible_Shadcn_ defaultOpen={defaultOpen}>
-      <CollapsibleTrigger_Shadcn_
+    <Collapsible defaultOpen={defaultOpen}>
+      <CollapsibleTrigger
         className={cn(
           'group',
           'w-fit rounded-full',
@@ -306,8 +300,8 @@ function TypeSubDetails({
           )}
         />
         Details
-      </CollapsibleTrigger_Shadcn_>
-      <CollapsibleContent_Shadcn_>
+      </CollapsibleTrigger>
+      <CollapsibleContent>
         <ul className={cn('border-b border-x border-default', 'rounded-b-lg')}>
           {details.map(
             (detail: SubContent | CustomTypePropertyType | TypeDetails, index: number) => (
@@ -324,8 +318,8 @@ function TypeSubDetails({
             )
           )}
         </ul>
-      </CollapsibleContent_Shadcn_>
-    </Collapsible_Shadcn_>
+      </CollapsibleContent>
+    </Collapsible>
   )
 }
 
@@ -387,6 +381,14 @@ interface ApiOperationRequestBodyDetailsInternalProps extends HTMLAttributes<HTM
   schema: ISchema
 }
 
+// Some specs have allOf/anyOf/oneOf as a single schema object instead of an
+// array. Wrap it so it still renders instead of crashing or disappearing.
+function asSchemaArray(value: unknown): Array<any> {
+  if (Array.isArray(value)) return value
+  if (value && typeof value === 'object') return [value]
+  return []
+}
+
 function ApiOperationRequestBodyDetailsInternal({
   schema,
   ...props
@@ -395,7 +397,7 @@ function ApiOperationRequestBodyDetailsInternal({
     return (
       <>
         <span className="font-mono text-sm font-medium text-foreground">All of the following:</span>
-        {schema.allOf.map((option, index) => (
+        {asSchemaArray(schema.allOf).map((option, index) => (
           <ApiSchemaParamSubdetails key={index} schema={option} />
         ))}
       </>
@@ -404,7 +406,7 @@ function ApiOperationRequestBodyDetailsInternal({
     return (
       <>
         <span className="font-mono text-sm font-medium text-foreground">Any of the following:</span>
-        {schema.anyOf.map((option, index) => (
+        {asSchemaArray(schema.anyOf).map((option, index) => (
           <ApiSchemaParamSubdetails key={index} schema={option} />
         ))}
       </>
@@ -413,7 +415,7 @@ function ApiOperationRequestBodyDetailsInternal({
     return (
       <>
         <span className="font-mono text-sm font-medium text-foreground">One of the following:</span>
-        {schema.oneOf.map((option, index) => (
+        {asSchemaArray(schema.oneOf).map((option, index) => (
           <ApiSchemaParamSubdetails key={index} schema={option} />
         ))}
       </>
@@ -437,10 +439,11 @@ function ApiOperationRequestBodyDetailsInternal({
     return (
       <>
         <span className="font-mono text-sm font-medium text-foreground">{`Array of ${displayName}`}</span>
-        {!(
-          'type' in schema.items &&
-          ['string', 'boolean', 'number', 'integer'].includes(schema.items.type)
-        ) && <ApiSchemaParamSubdetails className="mt-4" schema={schema.items} />}
+        {schema.items &&
+          !(
+            'type' in schema.items &&
+            ['string', 'boolean', 'number', 'integer'].includes(schema.items.type)
+          ) && <ApiSchemaParamSubdetails className="mt-4" schema={schema.items} />}
       </>
     )
   } else if (schema.type === 'object') {
@@ -475,13 +478,14 @@ export function ApiSchemaParamSubdetails({
       (schema.type === 'string' &&
         !('minLength' in schema || 'maxLength' in schema || 'pattern' in schema)) ||
       (schema.type === 'array' &&
+        schema.items &&
         'type' in schema.items &&
         ['boolean', 'number', 'integer', 'string', 'file'].includes(schema.items.type)))
   ) {
     return null
   }
 
-  const subContent =
+  const rawSubContent =
     'enum' in schema
       ? schema.enum
       : 'anyOf' in schema
@@ -498,10 +502,11 @@ export function ApiSchemaParamSubdetails({
                     value: schema[key],
                   }))
               : []
+  const subContent = asSchemaArray(rawSubContent)
 
   return (
-    <Collapsible_Shadcn_>
-      <CollapsibleTrigger_Shadcn_
+    <Collapsible>
+      <CollapsibleTrigger
         className={cn(
           'group',
           'w-fit rounded-full',
@@ -533,11 +538,27 @@ export function ApiSchemaParamSubdetails({
               : schema.type === 'object'
                 ? 'Object schema'
                 : 'Details'}
-      </CollapsibleTrigger_Shadcn_>
-      <CollapsibleContent_Shadcn_>
+      </CollapsibleTrigger>
+      <CollapsibleContent>
         {'type' in schema && schema.type === 'object' ? (
-          <div className={cn('border-b border-x border-fault', 'rounded-b-lg', 'p-5')}>
-            <ApiSchema schema={schema} />
+          <div className={cn('border-b border-x border-default', 'rounded-b-lg')}>
+            <div className="p-5 border-b border-default">
+              <ApiSchema schema={schema} />
+            </div>
+            <ApiOperationRequestBodyDetailsInternal schema={schema} className="px-5" />
+          </div>
+        ) : 'type' in schema &&
+          schema.type === 'array' &&
+          'items' in schema &&
+          schema.items &&
+          typeof schema.items === 'object' &&
+          'type' in schema.items &&
+          schema.items.type === 'object' ? (
+          <div className={cn('border-b border-x border-default', 'rounded-b-lg')}>
+            <div className="p-5 border-b border-default">
+              <ApiSchema schema={schema} />
+            </div>
+            <ApiOperationRequestBodyDetailsInternal schema={schema.items} className="px-5" />
           </div>
         ) : (
           <ul className={cn('border-b border-x border-default', 'rounded-b-lg')}>
@@ -570,8 +591,8 @@ export function ApiSchemaParamSubdetails({
             ))}
           </ul>
         )}
-      </CollapsibleContent_Shadcn_>
-    </Collapsible_Shadcn_>
+      </CollapsibleContent>
+    </Collapsible>
   )
 }
 

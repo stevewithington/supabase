@@ -4,22 +4,20 @@ import { cva, VariantProps } from 'class-variance-authority'
 import { Check, ChevronsUpDown, X as RemoveIcon } from 'lucide-react'
 // @ts-ignore Required to avoid TS error: The inferred type of MultiSelectorContent cannot be named without a reference to @radix-ui
 import type { Popover as PopoverPrimitive } from 'radix-ui'
-import React, { useEffect } from 'react'
+import React, { Children, useEffect } from 'react'
 import {
   Badge,
   cn,
-  Popover_Shadcn_ as Popover,
-  PopoverAnchor_Shadcn_ as PopoverAnchor,
-  PopoverContent_Shadcn_ as PopoverContent,
-  PopoverContentProps_Shadcn_ as PopoverContentProps,
-} from 'ui'
-import {
   Command,
   CommandEmpty,
   CommandInput,
   CommandItem,
   CommandList,
-} from 'ui/src/components/shadcn/ui/command'
+  Popover,
+  PopoverAnchor,
+  PopoverContent,
+  PopoverContentProps,
+} from 'ui'
 import { SIZE_VARIANTS, SIZE_VARIANTS_DEFAULT } from 'ui/src/lib/constants'
 
 interface MultiSelectContextProps {
@@ -44,9 +42,9 @@ const DROPDOWN_MAX_HEIGHT = 300
 const DROPDOWN_GAP = 8
 
 const commandItemClass = cn(
-  'relative text-foreground-lighter text-left px-2 py-1.5 rounded-sm',
+  'relative text-foreground-light text-left px-2 py-1.5 rounded-xs',
   'hover:text-foreground hover:!bg-overlay-hover w-full flex items-center space-x-2',
-  'peer-data-[value=true]:bg-overlay-hover peer-data-[value=true]:text-strong'
+  'peer-data-[value=true]:bg-overlay-hover'
 )
 
 function useMultiSelect() {
@@ -211,7 +209,23 @@ export interface MultiSelectorTriggerProps extends React.HTMLAttributes<HTMLButt
   deletableBadge?: boolean
   showIcon?: boolean
   mode?: MultiSelectorMode
+  renderValue?: (value: string) => React.ReactNode
 }
+
+const MultiSelectorTriggerVariants = cva('', {
+  variants: {
+    size: {
+      tiny: 'h-[26px] p-0.5 text-xs',
+      small: 'min-h-[34px] px-3 py-1.5 text-sm',
+      medium: 'min-h-[38px] px-4 py-2 text-sm',
+      large: 'min-h-[42px] px-4 py-2 text-base',
+      xlarge: 'min-h-[50px] px-6 py-3 text-base',
+    },
+  },
+  defaultVariants: {
+    size: SIZE_VARIANTS_DEFAULT,
+  },
+})
 
 const MultiSelectorTrigger = React.forwardRef<HTMLButtonElement, MultiSelectorTriggerProps>(
   (
@@ -223,12 +237,13 @@ const MultiSelectorTrigger = React.forwardRef<HTMLButtonElement, MultiSelectorTr
       badgeLimit = 9999,
       showIcon = true,
       mode = 'combobox',
+      renderValue,
       children,
       ...props
     },
     ref
   ) => {
-    const { activeIndex, values, setInputValue, toggleValue, disabled, open, setOpen } =
+    const { activeIndex, values, setInputValue, toggleValue, disabled, open, setOpen, size } =
       useMultiSelect()
 
     const inputRef = React.useRef<HTMLButtonElement>(null)
@@ -258,7 +273,7 @@ const MultiSelectorTrigger = React.forwardRef<HTMLButtonElement, MultiSelectorTr
       }
     }, [values, badgeLimit])
 
-    const badgeClasses = 'rounded-sm shrink-0 px-1.5'
+    const badgeClasses = 'rounded-sm shrink-0 px-1.5 bg-surface-75 dark:bg-white/5'
 
     const handleTriggerClick: React.MouseEventHandler<HTMLButtonElement> = React.useCallback(
       (event) => {
@@ -293,12 +308,16 @@ const MultiSelectorTrigger = React.forwardRef<HTMLButtonElement, MultiSelectorTr
           type="button"
           role="combobox"
           className={cn(
-            'flex w-full min-w-[200px] min-h-[40px] items-center justify-between rounded-md border',
-            'border-alternative bg-control px-3 py-2 text-sm',
-            'ring-offset-background placeholder:text-muted-foreground',
-            'focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2',
+            'flex w-full min-w-[200px] items-center justify-between rounded-md border',
+            'border-strong',
+            // Empty: raised plate. Filled: sunk well for chips.
+            values.length > 0 ? 'bg-field' : 'bg-control-raised',
+            'placeholder:text-muted-foreground',
+            'ring-border-control focus-ring',
             'disabled:cursor-not-allowed disabled:opacity-50',
-            'hover:border-primary transition-colors duration-200',
+            'hover:border-control-hover transition-colors duration-200',
+            open && 'border-control-hover',
+            MultiSelectorTriggerVariants({ size }),
             className
           )}
           {...props}
@@ -306,7 +325,8 @@ const MultiSelectorTrigger = React.forwardRef<HTMLButtonElement, MultiSelectorTr
           <div
             ref={badgesRef}
             className={cn(
-              'flex gap-1 -ml-1 overflow-hidden flex-1',
+              'flex gap-1 overflow-hidden flex-1',
+              size !== 'tiny' && '-ml-1',
               IS_BADGE_LIMIT_WRAP && 'flex-wrap',
               !IS_BADGE_LIMIT_WRAP &&
                 'overflow-x-auto scrollbar-thin scrollbar-track-transparent transition-colors scrollbar-thumb-muted-foreground dark:scrollbar-thumb-muted scrollbar-thumb-rounded-lg'
@@ -314,7 +334,7 @@ const MultiSelectorTrigger = React.forwardRef<HTMLButtonElement, MultiSelectorTr
           >
             {visibleBadges.map((value) => (
               <Badge key={value} className={badgeClasses}>
-                {value}
+                {renderValue?.(value) ?? value}
                 {deletableBadge && (
                   <div
                     onMouseEnter={() => setIsDeleteHovered(true)}
@@ -367,7 +387,7 @@ const MultiSelectorTrigger = React.forwardRef<HTMLButtonElement, MultiSelectorTr
           {showIcon && (
             <ChevronsUpDown
               size={16}
-              strokeWidth={2}
+              strokeWidth={1.5}
               className="text-foreground-lighter shrink-0 ml-1.5"
             />
           )}
@@ -380,7 +400,7 @@ const MultiSelectorTrigger = React.forwardRef<HTMLButtonElement, MultiSelectorTr
 MultiSelectorTrigger.displayName = 'MultiSelectorTrigger'
 MultiSelector.Trigger = MultiSelectorTrigger
 
-const MultiSelectorInputVariants = cva('bg-control border', {
+const MultiSelectorInputVariants = cva('', {
   variants: {
     size: {
       ...SIZE_VARIANTS,
@@ -478,7 +498,7 @@ const MultiSelectorContent = React.forwardRef<HTMLDivElement, PopoverContentProp
         align="start"
         ref={ref}
         className={cn(
-          'bg-overlay shadow-md z-50 border border-overlay rounded-md p-0',
+          'bg-overlay shadow-md z-50 border rounded-md p-0',
           'w-(--radix-popper-anchor-width)',
           className
         )}
@@ -505,16 +525,10 @@ const MultiSelectorList = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof CommandList> & {
     creatable?: boolean
   }
->(({ className, children, creatable = false }, ref) => {
+>(({ className, children, creatable = false, ...props }, ref) => {
   const { open, inputValue, setInputValue, toggleValue, dropdownMaxHeight } = useMultiSelect()
 
-  const options = !!children
-    ? Array.isArray(children)
-      ? (children as React.ReactNode[])
-      : typeof children === 'object' && 'props' in children
-        ? children.props.children
-        : []
-    : []
+  const options = Children.toArray(children)
   const availableOptions = options
     .filter((x: any) => !!x.props.value)
     .map((x: any) => x.props.value.toLowerCase())
@@ -524,12 +538,14 @@ const MultiSelectorList = React.forwardRef<
     <CommandList
       ref={ref}
       className={cn(
-        'p-2 flex flex-col gap-2 scrollbar-thin scrollbar-track-transparent transition-colors',
+        'p-1 flex flex-col scrollbar-thin scrollbar-track-transparent transition-colors',
         'scrollbar-thumb-muted-foreground dark:scrollbar-thumb-muted',
         'scrollbar-thumb-rounded-lg w-full overflow-y-auto',
         className
       )}
       style={{ maxHeight: dropdownMaxHeight }}
+      onWheel={(e) => e.stopPropagation()}
+      {...props}
     >
       {children}
       {creatable && inputValue.length > 0 && !isOptionExists ? (
@@ -584,14 +600,14 @@ const MultiSelectorItem = React.forwardRef<
           'peer h-4 w-4 shrink-0 rounded-sm border border-control bg-control/25 ring-offset-background',
           'transition-colors duration-150 ease-in-out',
           'hover:border-strong',
-          'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-          'disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-foreground data-[state=checked]:text-background',
-          isSelected ? 'bg-foreground text-background' : '[&_svg]:invisible'
+          'focus-ring',
+          'disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-foreground data-[state=checked]:text-background-overlay',
+          isSelected ? 'bg-foreground text-background-overlay' : '[&_svg]:invisible'
         )}
       >
         <Check className="h-3 w-3" strokeWidth={4} />
       </div>
-      <div className="text-xs grow leading-none pointer-events-none cursor-pointer peer-disabled:cursor-not-allowed peer-disabled:pointer-events-none peer-disabled:opacity-50">
+      <div className="text-sm grow leading-none pointer-events-none cursor-pointer peer-disabled:cursor-not-allowed peer-disabled:pointer-events-none peer-disabled:opacity-50">
         {children}
       </div>
     </CommandItem>
